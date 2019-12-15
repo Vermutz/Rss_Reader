@@ -76,109 +76,49 @@ public class DataSource extends ItemKeyedDataSource<String,Article> {
     @Override
     public void loadAfter(@NonNull LoadParams params, @NonNull LoadCallback callback) {
 
-        Call<RSSFeed> dataone = retrofitService.createService(HabarAPI.class,HABAR_URL).loadRSSFeed();
-        dataone.enqueue(new Callback<RSSFeed>() {
-            @Override
-            public void onResponse(Call<RSSFeed> call, Response<RSSFeed> response) {
-
-                RSSFeed rssFeed = response.body();
-                rssFeed.setUrlForAllArticles();
-                articles= rssFeed.getArticleList();
-
-                Call<RSSFeed> datatwo = retrofitService.createService(MeduzaAPI.class,MEDUZA_URL).loadRSSFeed();
-                datatwo.enqueue(new Callback<RSSFeed>() {
-                    @Override
-                    public void onResponse(Call<RSSFeed> call, Response<RSSFeed> response) {
-
-                        RSSFeed rssFeed = response.body();
-                        rssFeed.setUrlForAllArticles();
-                        articles.addAll(rssFeed.getArticleList());
-                        Collections.sort(articles,new ArticleDateComparator());
-
-                        List<Article> result = new ArrayList<Article>();
-                        int position = articles.size();
-                        for(int i =0;i<articles.size();i++){
-                            if(articles.get(i).getTitle().equals(params.key)) {
-                                position = i+1;
-                                break;
-                            }
-                        }
-                        int loadsize = params.requestedLoadSize+position;
-                        while (position<loadsize){
-                            if(position>=articles.size())break;
-                            Article article = articles.get(position);
-                            result.add(article);
-                            position++;
-                        }
-
-                        callback.onResult(result);
-                    }
-
-                    @Override
-                    public void onFailure(Call<RSSFeed> call, Throwable t) {
-
-                    }
-                });
+        List<Article> result = new ArrayList<Article>();
+        int position = articles.size();
+        for(int i =0;i<articles.size();i++){
+            if(articles.get(i).getTitle().equals(params.key)) {
+                position = i+1;
+                break;
             }
+        }
 
-            @Override
-            public void onFailure(Call<RSSFeed> call, Throwable t) {
+        int loadsize = params.requestedLoadSize+position;
 
-            }
-        });
+        while (position<loadsize){
+            if(position>=articles.size())break;
+            Article article = articles.get(position);
+            result.add(article);
+            position++;
+        }
+
+        callback.onResult(result);
     }
 
     @Override
     public void loadBefore(@NonNull LoadParams params, @NonNull LoadCallback callback) {
-        Call<RSSFeed> dataone = retrofitService.createService(HabarAPI.class,HABAR_URL).loadRSSFeed();
-        dataone.enqueue(new Callback<RSSFeed>() {
-            @Override
-            public void onResponse(Call<RSSFeed> call, Response<RSSFeed> response) {
 
-                RSSFeed rssFeed = response.body();
-                rssFeed.setUrlForAllArticles();
-                articles = rssFeed.getArticleList();
-
-                Call<RSSFeed> datatwo = retrofitService.createService(MeduzaAPI.class,MEDUZA_URL).loadRSSFeed();
-                datatwo.enqueue(new Callback<RSSFeed>() {
-                    @Override
-                    public void onResponse(Call<RSSFeed> call, Response<RSSFeed> response) {
-                        RSSFeed rssFeed = response.body();
-                        rssFeed.setUrlForAllArticles();
-                        articles.addAll(rssFeed.getArticleList());
-                        Collections.sort(articles,new ArticleDateComparator());
-
-                        List<Article> result = new ArrayList<Article>();
-                        int position = articles.size();
-                        for(int i =0;i<articles.size();i++){
-                            if(articles.get(i).getTitle().equals(params.key)) {
-                                position = i-1;
-                                break;
-                            }
-                        }
-                        int loadsize = position - params.requestedLoadSize;
-                        while (position>loadsize){
-                            if(position<0)break;
-                            Article article = articles.get(position);
-                            result.add(article);
-                            position--;
-                        }
-
-                        callback.onResult(result);
-                    }
-
-                    @Override
-                    public void onFailure(Call<RSSFeed> call, Throwable t) {
-
-                    }
-                });
+        List<Article> result = new ArrayList<Article>();
+        int position = articles.size();
+        for(int i =0;i<articles.size();i++){
+            if(articles.get(i).getTitle().equals(params.key)) {
+                position = i-1;
+                break;
             }
+        }
 
-            @Override
-            public void onFailure(Call<RSSFeed> call, Throwable t) {
+        int loadsize = position - params.requestedLoadSize;
 
-            }
-        });
+        while (position>loadsize){
+            if(position<0)break;
+            Article article = articles.get(position);
+            result.add(article);
+            position--;
+        }
+
+        callback.onResult(result);
     }
 
     @NonNull
